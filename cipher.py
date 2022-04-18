@@ -2,22 +2,35 @@
  * @author Kassoum TRAORE
  * @email shadoworker5.dev@gmail.com
  * @create date 2021-11-27 18:48:48
- * @modify date 2022-03-27 23:58:14
+ * @modify date 2022-04-18 00:53:28
  * @desc [description]
 """
-
+import math
+from random import randint, randrange
 from string import printable
 from secrets import randbelow
+
+import numpy
 # import art
 
+list_of_key = {}
 ALL_CHAR = [i for i in printable if ord(i) > 13]
 ALPHABET_SIZE = len(ALL_CHAR)
-list_of_key = {}
+menu_list = [
+    'Affine crypt', 'Affine decrypt', 'Ceasar crypt', 'Ceasar decrypt', 'El Gamal crypt', 'El Gamal decrypt', 'Hill crypt', 'Hill decrypt', 'RSA crypt', 'RSA decrypt', 'Vigenere crypt', 'Vigenere decrypt', 'Load in file', 'Exit'
+]
 
 def generate_random_value(m):
     while True:
         d = randbelow(1000000)
         if pgcd(d, m) == 1:
+            break     
+    return d
+
+def generate_random_prime_value(m=1000000):
+    while True:
+        d = randbelow(m)
+        if d % 2 != 0:
             break
     return d
 
@@ -63,7 +76,7 @@ def create_message(msg):
         message = input(msg)
         if message != '':
             break
-    return message.upper()
+    return message
 
 def key_decrypt(key):
     if key % 2 == 0:
@@ -95,61 +108,111 @@ def affine_ceasar_decrypt(char, a, b):
 def affine_crypt():
     print('Encode format: E(x) = (a*x + b) mod(size)')
     encode_msg = ""
-    plan_text = create_message('Enter your message: ')
-    a = int(input('Enter value of a: '))
+    plain_text = create_message('Enter your message: ')
+    a = int(get_prime_number('Enter value of a: '))
     b = int(input('Enter value of b: '))
-    print(plan_text)
+    print(f"\nPlain message: {plain_text}")
 
-    for i in plan_text:
+    for i in plain_text:
         encode_msg += affine_ceasar_encrypt(i, a, b)
-    print(encode_msg)
+    print(f'\nCipher message: {encode_msg}')
     save_in_file(encode_msg)
 
 def affine_decrypt():
     print('Decode format: D(x) = a^-1 * (x - b) mod(ALPHABET_SIZE)')
     decode_msg = ""
     cipher_text = create_message('Enter your message: ')
-    a = int(input('Enter value of a: '))
+    a = int(get_prime_number('Enter value of a: '))
     b = int(input('Enter value of b: '))
-    print(cipher_text)
+    print(f'Cipher message: {cipher_text}')
 
     for i in cipher_text:
-        if i == " ":
-            decode_msg += " "
-            continue
         decode_msg += affine_ceasar_decrypt(i, a, b)
     
-    print(decode_msg)
+    print(f'Plain message: {decode_msg}')
+    save_in_file(decode_msg)
 
 def ceasar_crypt():
-    print('Encode format: E(x) = (x + b) mod(size)')
-    plan_text = create_message('Enter your message: ')
+    print('\nEncode format: E(x) = (x + b) mod(size)')
+    plain_text = create_message('Enter your message: ')
     b = int(input('Enter value of b: '))
+    print(f'\nPlain message: {plain_text}')
     encode_msg = ""
-    for i in plan_text:
-        if i == " ":
-            encode_msg += " "
-            continue
+    
+    for i in plain_text:
         encode_msg += affine_ceasar_encrypt(i, 1, b)
-    print(encode_msg)
+    
+    print(f'\nCipher message: {encode_msg}')
+    save_in_file(encode_msg)
 
 def ceasar_decrypt():
     print('Decode format: D(x) = (x - b) mod(ALPHABET_SIZE)')
     cipher_text = create_message('Enter your message: ')
     b = int(input('Enter value of b: '))
     encode_msg = ""
+    print(f'Cipher message: {cipher_text}')
+    
     for i in cipher_text:
-        if i == " ":
-            encode_msg += " "
-            continue
         encode_msg += affine_ceasar_decrypt(i, 1, b)
-    print(encode_msg)
+    print(f'Plain message: {encode_msg}')
+    save_in_file(encode_msg)
+
+def generate_random_prime_el_gamal():
+    while True:
+        n = randrange(pow(20, 30), pow(15, 50))
+        if n % 2 != 0:
+            break
+    return n
+    
+def generate_random_el_gamal(p):
+    while True:
+        value = randrange(0, p)
+        if pgcd(value, p) == 1 and value & 1 == 1:
+            break
+    return value
+
+# Modular exponentiation
+def exponentiation(a, b, n):
+    # if b % 2 == 1: result = (result * a) % n a = (a * a) % n b //= 2
+    result = 1
+    while b > 0:
+        if b & 1 == 1: # b%2==1
+            result = (result * a) % n
+        a = (a*a) % n
+        b = b >> 1 # b /=2
+        
+    return result
 
 def el_gamal_crypt():
-    pass
+    # plain_text = create_message("Enter your message: ")
+    p = generate_random_prime_el_gamal()
+    a = generate_random_el_gamal(p - 2)
+    m = generate_random_el_gamal(p - 1)
+    n = exponentiation(m, a, p)
+    k = generate_random_el_gamal(p - 1)
+    print(f'Public key (p, m, n): \np: {p}\nm: {m}\nn: {n}')
+    print(f'\nPrivate key a:\na: {a}')
+    
+    cipher_txt = ''
+    plain_text = 'Encryption is science of secret'
+    y1 = exponentiation(m, k, p)
+    coef = exponentiation(n, k, p)
+    for i in plain_text:
+        cipher_txt += str(ALL_CHAR.index(i) * coef) + ' '
+        
+    print(f'Cipher message: {cipher_txt}\n')
+    el_gamal_decrypt(cipher_txt, y1, p, a)
 
-def el_gamal_decrypt():
-    pass
+def el_gamal_decrypt(msg, y1, p, a):
+    msg = [int(i) for i in msg.split()]
+    decode_txt = ''
+    coef = exponentiation(y1, a, p)
+    
+    for i in msg:
+        key = int(i / coef)
+        decode_txt += ALL_CHAR[key]
+    
+    print(f'Plain messages: {decode_txt}')
 
 def hill_crypt():
     print(""" (x1, x2) global form """)
@@ -245,42 +308,41 @@ def rsa_decrypt():
         cipher_message = [int(i) for i in cipher_message.split()]
     except Exception:
         print("Message is incorrect.\nPlease try again")
+        main()
     
     for i in cipher_message:
         x = pow(i, d) % n
         decode_msg += ALL_CHAR[x]
-    print(f"Message en clair: {decode_msg}")
+    print(f"\nPlain message: {decode_msg}")
     save_in_file(decode_msg)
 
-def vigenere_encrypt():
+def vigenere_crypt():
     plan_text = create_message('Enter your message: ')
     key = create_message('Enter your key text: ')
     encode_msg = ""
     key_generate = (key*len(plan_text))[0:len(plan_text)]
+    print(f'\nPlain message: {plan_text}')
     
     for i in range(len(plan_text)):
-        if plan_text[i] == " ":
-            encode_msg += " "
-            continue
-        char_code = ALL_CHAR.index(plan_text[i]) + ALL_CHAR.index(key_generate[i])
-        if char_code >= 26:
-            char_code -= 26
+        char_code = (ALL_CHAR.index(plan_text[i]) + ALL_CHAR.index(key_generate[i])) % len(ALL_CHAR)
         encode_msg += ALL_CHAR[char_code]
-    print(encode_msg)
+        
+    print(f'\nCipher message: {encode_msg}')
+    save_in_file(encode_msg)
 
 def vigenere_decrypt():
     plan_text = create_message('Enter your message: ')
     key = create_message('Enter your key text: ')
     decode_msg = ""
     key_generate = (key*len(plan_text))[0:len(plan_text)]
+    print(f'\nCipher message: {plan_text}')
 
     for i in range(len(plan_text)):
-        if plan_text[i] == " ":
-            decode_msg += " "
-            continue
         char_decode = ALL_CHAR.index(plan_text[i]) - ALL_CHAR.index(key_generate[i])
         decode_msg += ALL_CHAR[char_decode]
-    print(decode_msg)
+        
+    print(f'Plain message: {decode_msg}')
+    save_in_file(decode_msg)
 
 def choose_menu(list_menu):
     while True:
@@ -292,30 +354,48 @@ def choose_menu(list_menu):
             print(f'Vous devez choisir entre 1 et {len(list_menu)}')
     
     if item == 1:
-        ...
+        affine_crypt()
     elif item == 2:
-        # create_message('ChiffrerRsa')
-        ...
+        affine_decrypt()
     elif item == 3:
-        # create_message('DechiffrerRsa')
-        ...
+        ceasar_crypt()
+    elif item == 4:
+        ceasar_crypt()
+    elif item == 5:
+        el_gamal_crypt()
+    elif item == 6:
+        el_gamal_decrypt()
+    elif item == 7:
+        # hill_crypt()
+        print('In progress.................')
+    elif item == 8:
+        # hill_decrypt()
+        print('In progress.................')
+    elif item == 9:
+        rsa_crypt()
+    elif item == 10:
+        rsa_decrypt()
+    elif item == 11:
+        vigenere_crypt()
+    elif item == 12:
+        vigenere_decrypt()
+    elif item == 13:
+        print('In progresse.................')
     else:
         print('Good bye..................')
         exit()
 
 def main():
-    menu_list = [
-        'Affine crypt', 'Affine decrypt', 'Ceasar crypt', 'Ceasar decrypt', 'El Gamal crypt', 'El Gamal decrypt', 'Hill crypt', 'Hill decrypt', 'RSA crypt', 'RSA decrypt', 'Vigenere crypt', 'Vigenere decrypt', 'Exit'
-    ]
     for i, value in enumerate(menu_list):
         print('[{}]-{}'.format(str(i+1), value))
     print('\nChoose one')
     choose_menu(menu_list)
 
 if __name__ == "__main__":
+    el_gamal_crypt()
     # art.tprint("Shadoworker5")
-    try:
-        main()
-    except KeyboardInterrupt:
-        print('Keyboadr interruption.\nGood bye!!!')
-        exit()
+    # try:
+    #     main()
+    # except KeyboardInterrupt:
+    #     print('Keyboadr interruption.\nGood bye!!!')
+    #     exit()
