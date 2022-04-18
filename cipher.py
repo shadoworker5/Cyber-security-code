@@ -2,16 +2,12 @@
  * @author Kassoum TRAORE
  * @email shadoworker5.dev@gmail.com
  * @create date 2021-11-27 18:48:48
- * @modify date 2022-04-18 00:53:28
+ * @modify date 2022-04-18 23:09:39
  * @desc [description]
 """
-import math
-from random import randint, randrange
+from random import randrange
 from string import printable
 from secrets import randbelow
-
-import numpy
-# import art
 
 list_of_key = {}
 ALL_CHAR = [i for i in printable if ord(i) > 13]
@@ -47,16 +43,18 @@ def get_input(msg, format):
     return response
 
 def choose_yes_no(msg):
-    choose = 'N'
     while True:
         try:
-            choose = str(input(f"{msg} [Y/N] default[N]: ")).upper()
-            if choose == 'Y' or choose == 'N':
+            choose = str(input(f"{msg} [y/n] default[n]: "))
+            if choose.upper() == 'Y' or choose.upper() == 'N':
+                break
+            if len(choose) == 0:
+                choose = 'n'
                 break
         except ValueError:
             print("Please choose between Y or N")
             continue
-    return choose
+    return choose.upper()
 
 def save_in_file(message):
     response = choose_yes_no('\nDo you want to save your message?')
@@ -184,42 +182,57 @@ def exponentiation(a, b, n):
     return result
 
 def el_gamal_crypt():
-    # plain_text = create_message("Enter your message: ")
+    plain_text = create_message("Enter your message: ")
+    
     p = generate_random_prime_el_gamal()
     a = generate_random_el_gamal(p - 2)
     m = generate_random_el_gamal(p - 1)
     n = exponentiation(m, a, p)
     k = generate_random_el_gamal(p - 1)
-    print(f'Public key (p, m, n): \np: {p}\nm: {m}\nn: {n}')
-    print(f'\nPrivate key a:\na: {a}')
     
     cipher_txt = ''
-    plain_text = 'Encryption is science of secret'
-    y1 = exponentiation(m, k, p)
+    print(f'Public key (p, m, n): \np: {p}\nm: {m}\nn: {n}')
+    print(f'\nPrivate key (a):\na: {a}\n')
+    
+    key = exponentiation(m, k, p)
     coef = exponentiation(n, k, p)
+    
     for i in plain_text:
         cipher_txt += str(ALL_CHAR.index(i) * coef) + ' '
         
-    print(f'Cipher message: {cipher_txt}\n')
-    el_gamal_decrypt(cipher_txt, y1, p, a)
+    print(f'Cipher message:\n{cipher_txt}\nkey: {key}')
+    save_in_file(cipher_txt)
 
-def el_gamal_decrypt(msg, y1, p, a):
-    msg = [int(i) for i in msg.split()]
+def el_gamal_decrypt():
+    plain_text = create_message("Enter your message: ")
+    try:
+        plain_text = [int(i) for i in plain_text.split()]
+    except Exception:
+        print("Invalid format of message. Please again\n")
+        main()
+        
+    key = get_prime_number('Enter value of key: ')
+    p = get_prime_number('Enter value of p: ')
+    a = get_prime_number('Enter value of a: ')
     decode_txt = ''
-    coef = exponentiation(y1, a, p)
+    coef = exponentiation(key, a, p)
     
-    for i in msg:
-        key = int(i / coef)
-        decode_txt += ALL_CHAR[key]
+    try:
+        for i in plain_text:
+            item = int(i / coef)
+            decode_txt += ALL_CHAR[item]
+    except Exception:
+        print('This error is cause by using incorrect key. Please try again\n')
+        main()
     
-    print(f'Plain messages: {decode_txt}')
+    print(f'\nPlain messages:\n{decode_txt}')
+    save_in_file(decode_txt)
 
 def hill_crypt():
     print(""" (x1, x2) global form """)
     print(""" Key = (a, b, c, d) """)
     print(""" PGCD(ad-bc, 26)=1 """)
     print(""" y1= (ax1 + bx2)mod26 and y2= (cx1 + dx2)mod26 with 0 =< y =< 25 """)
-    print(ALL_CHAR)
     
 def hill_decrypt():
     print(""" (x1, x2) global form """)
@@ -366,11 +379,11 @@ def choose_menu(list_menu):
     elif item == 6:
         el_gamal_decrypt()
     elif item == 7:
-        # hill_crypt()
         print('In progress.................')
+        exit()
     elif item == 8:
-        # hill_decrypt()
         print('In progress.................')
+        exit()
     elif item == 9:
         rsa_crypt()
     elif item == 10:
@@ -380,22 +393,26 @@ def choose_menu(list_menu):
     elif item == 12:
         vigenere_decrypt()
     elif item == 13:
-        print('In progresse.................')
+        print('In progress.................')
+        exit()
     else:
-        print('Good bye..................')
+        print('Good bye....................')
         exit()
 
 def main():
     for i, value in enumerate(menu_list):
-        print('[{}]-{}'.format(str(i+1), value))
+        print(f'[{str(i+1)}]- {value}')
     print('\nChoose one')
     choose_menu(menu_list)
 
 if __name__ == "__main__":
-    el_gamal_crypt()
-    # art.tprint("Shadoworker5")
-    # try:
-    #     main()
-    # except KeyboardInterrupt:
-    #     print('Keyboadr interruption.\nGood bye!!!')
-    #     exit()
+    try:
+        from art import tprint
+        tprint("Shadoworker5")
+        main()
+    except KeyboardInterrupt:
+        print('Keyboadr interruption.\nGood bye!!!')
+        exit()
+    except ModuleNotFoundError:
+        print('Module art not found.')
+        main()
