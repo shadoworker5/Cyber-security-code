@@ -1,3 +1,11 @@
+"""
+ * @author Kassoum TRAORE
+ * @email shadoworker5.dev@gmail.com
+ * @create date 2021-10-05 16:24:01
+ * @modify date 2022-05-16 00:01:17
+ * @desc [description]
+"""
+
 """ You must use this script by example 127.0.0.1 10000 1 """
 from datetime import datetime
 import socket
@@ -35,13 +43,14 @@ def async_call(address_ip, ports, delay):
 
     for port in range(ports):
         result[port].join()
-    
+    print(f'# Port {" "*10} || Service {" "*7} || Status {" ":<6}#')
+    print('*'*54)
     for i in range(ports):
         if port_dict[i] == "open":
-            print("Port {} is : {}".format(str(i), port_dict[i]))
+            print(f'# {str(i):<15} || {str(i):<15} || {port_dict[i]:<12} #')
             count_open_port += 1
     end_start = datetime.timestamp(datetime.today())
-    print("Scan time: {} seconds".format(str(end_start - time_start).split(".")[0]))
+    print("Scan time: {} seconds".format(str(end_start - time_start)))
     print("Scan result: {} are open and {} are close or filter".format(str(count_open_port), str(len(port_dict) - count_open_port)))
         
 def main(address_ip, port, delay):
@@ -56,8 +65,5 @@ if len(sys.argv) == 4:
         print("Keyboard Interruption.\nBye")
         exit()
 else:
-    print("Error. You must use this script by example 127.0.0.1 10000 1")
+    print("Syntax error. Use for example 127.0.0.1 10000 1\n127.0.0.1: target IP\n10000: 10000 first port numerber\n1: delay of send request")
     exit()
-
-# time_start = datetime.timestamp(datetime.today())
-# end_start = datetime.timestamp(datetime.today())
