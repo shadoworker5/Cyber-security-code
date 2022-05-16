@@ -2,7 +2,7 @@
  * @author Kassoum TRAORE
  * @email shadoworker5.dev@gmail.com
  * @create date 2022-05-15 23:37:46
- * @modify date 2022-05-15 23:54:40
+ * @modify date 2022-05-16 00:09:57
  * @desc [description]
 """
 import os
@@ -102,8 +102,8 @@ def browser_history(browser):
     for item in history:
         print(f'| Title : {item[0]}')
         print(f'| Url   : {item[1]}')
-        print(f'| Visit count: {item[1]}')
-        print(f'| Last time visit: {item[2]}')
+        print(f'| Visit count: {item[2]}')
+        print(f'| Last time visit: {chrome_date_and_time(item[3])}')
         print(f'|{"-"*100}|')
     # save_in_file(base64.encode(history))
     print('\n')
