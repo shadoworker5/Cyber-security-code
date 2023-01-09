@@ -1,4 +1,3 @@
-from art import tprint
 import json
 
 all_social_name = ['facebook.com', 'twitter.com', 'instagram.com', 'tiktok.com']

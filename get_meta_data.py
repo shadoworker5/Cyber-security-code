@@ -12,11 +12,6 @@ all_gps = [
     {'GPSLatitudeRef': 'N', 'GPSLatitude': (11.0, 10.0, 45.3403), 'GPSLongitudeRef': 'W', 'GPSLongitude': (4.0, 14.0, 56.4397)},
     {'GPSLatitudeRef': 'N', 'GPSLatitude': (11.0, 10.0, 52.5192), 'GPSLongitudeRef': 'W', 'GPSLongitude': (4.0, 14.0, 50.6393)}
 ]
-#[
-#     {'GPSLatitudeRef': 'N', 'GPSLatitude': (54.0, 36.0, 10.17), 'GPSLongitudeRef': 'W', 'GPSLongitude': (3.0, 5.0, 54.9)},
-#     {'GPSLatitudeRef': 'N', 'GPSLatitude': (11.0, 10.0, 45.3403), 'GPSLongitudeRef': 'W', 'GPSLongitude': (4.0, 14.0, 56.4397)}, 
-#     {'GPSLatitudeRef': 'N', 'GPSLatitude': (11.0, 10.0, 52.5192), 'GPSLongitudeRef': 'W', 'GPSLongitude': (4.0, 14.0, 50.6393)}
-# ]
 
 def draw_position():
     if all_gps:

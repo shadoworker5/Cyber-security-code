@@ -1,6 +1,5 @@
 import subprocess
 import re
-import art
 
 list_wifi = list()
 
