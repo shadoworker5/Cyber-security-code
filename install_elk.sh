@@ -8,6 +8,7 @@
 INSTALL_FOLDER="elk_stack_install_folder"
 ELASTIC_INSTALL_RESULT="elastic_install_result.txt"
 KIBANA_INSTALL_RESULT="kibana_install_result.txt"
+LOGSTASH_INSTALL_RESULT="logstash_install_result.txt"
 
 function checkUser() {
     if [ "$EUID" -ne 0 ]; then
@@ -44,5 +45,8 @@ sudo apt-get install elasticsearch > $ELASTIC_INSTALL_RESULT
 
 echo "install Kibana"
 apt-get install kibana > $KIBANA_INSTALL_RESULT
+
+echo "install Logstash"
+apt install logstash > $LOGSTASH_INSTALL_RESULT
 
 echo "end script running............."
