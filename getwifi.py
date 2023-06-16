@@ -1,7 +1,6 @@
 import subprocess
 import re
 from datetime import datetime
-from art import tprint
 
 # This function is use to get all profile
 def get_profile():
@@ -61,7 +60,6 @@ def main():
     # print("Scan time: {} seconds".format(str(end_start - time_start).split(".")[0]))
 
 if __name__ == '__main__':
-    tprint('Shadoworker5')
     try:
         main()
     except:
