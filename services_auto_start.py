@@ -4,7 +4,7 @@
  * @author Shadoworker5 Dev
  * @email shadoworker5@protonmail.com
  * @create date 2023-06-16 12:28:04
- * @modify date 2023-06-16 15:10:32
+ * @modify date 2023-06-16 23:44:11
 """
 import os
 import subprocess
@@ -13,7 +13,7 @@ import subprocess
 # */5 * * * * root /etc/init.d/services_auto_start.py > /tmp/services_auto_start.log
 
 # Define here all TCP port, services and commands
-TCP_PORTS       = ["80", "443", "3306"]
+TCP_PORTS       = ["80", "3306"]
 TCP_COMMANDS    = ["service apache2 start", "service mysql start"]
 TCP_SERVICES    = ["apache2", "mysql"]
 
@@ -23,13 +23,10 @@ UDP_COMMANDS    = ["service openvpn start"]
 UDP_SERVICES    = ["openvpn"]
 
 def startService(command):
-    try:
-        os.system(command)
-    except Exception as e:
-        print(f"Error when execute {command} exception: {str(e)}")
+    os.system(command)
         
 def checkPortStatus(port):
-    result = subprocess.check_output(f"nc -vz localhost {port} | grep refused", shell=True)
+    result = subprocess.getoutput(f"nc -vz localhost {port}")
     print(f"checking port: {port} ==> {result}")
     if "refused" not in result:
         return True
@@ -58,5 +55,8 @@ def sendNotificationSlack(message):
     ...
     
 if __name__ == '__main__':
-    loadTcpService()
-    loadUdpService()
+    try:
+        loadTcpService()
+        loadUdpService()
+    except Exception as e:
+        print(f"Error: {str(e)}")
