@@ -12,7 +12,7 @@ Please note the following:
 - Before using these codes, please read them carefully, understand them and evaluate them according to your own needs and environment.
 - Any risks associated with the use of these codes are assumed by the user.
 
-## By using these codes, you accept these terms and conditions. If you do not accept these terms, please do not use these codes.
+By using these codes, you accept these terms and conditions. If you do not accept these terms, please do not use these codes.
 
 ## License
 
