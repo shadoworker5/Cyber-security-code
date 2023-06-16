@@ -3,12 +3,12 @@
 # @author Shadoworker5 Dev
 # @email shadoworker5@protonmail.com
 # @create date 2023-04-24 21:54:10
-# @modify date 2023-04-24 22:21:52
+# @modify date 2023-06-16 12:28:52
 
 INSTALL_FOLDER="elk_stack_install_folder"
-ELASTIC_INSTALL_RESULT="elastic_install_result.txt"
-KIBANA_INSTALL_RESULT="kibana_install_result.txt"
-LOGSTASH_INSTALL_RESULT="logstash_install_result.txt"
+ELASTIC_INSTALL_RESULT="elastic_install_result.log"
+KIBANA_INSTALL_RESULT="kibana_install_result.log"
+LOGSTASH_INSTALL_RESULT="logstash_install_result.log"
 
 function checkUser() {
     if [ "$EUID" -ne 0 ]; then
