@@ -4,59 +4,83 @@
  * @author Shadoworker5 Dev
  * @email shadoworker5@protonmail.com
  * @create date 2023-06-16 12:28:04
- * @modify date 2023-06-16 23:44:11
+ * @modify date 2023-06-25 02:39:39
 """
 import os
 import subprocess
+from requests import post as postQuery
+from datetime import datetime
 
-# You need to define schedule job in crontab after copy this script in /etc/init.d/
-# */5 * * * * root /etc/init.d/services_auto_start.py > /tmp/services_auto_start.log
+# To use this script you must follow this guide
+## Copy this script in /etc/init.d/
+## Define schedule job in crontab example */5 * * * * root /etc/init.d/services_auto_start.py
+## uncomment sendNotificationToSlack or sendNotificationToDiscord about your
 
-# Define here all TCP port, services and commands
-TCP_PORTS       = ["80", "3306"]
-TCP_COMMANDS    = ["service apache2 start", "service mysql start"]
-TCP_SERVICES    = ["apache2", "mysql"]
+LOG_FILE_PATH       = "/tmp/services_auto_start.log"
+SLACK_BOT_URL       = "https://hooks.slack.com/services/XXXXXXXXX/XXXXXXXXX/XXXXXXXXXXXXXXXXXX"
+DISCORD_WEBHOOKS    = "https://discordapp.com/api/webhooks/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 
-# Define here all UDP port, services and commands
-UDP_PORTS       = ["1194"]
-UDP_COMMANDS    = ["service openvpn start"]
-UDP_SERVICES    = ["openvpn"]
+# Define dictionnary for all service to monitor
+CHECK_SERVICES  = {
+    "ssh" : {
+        "port"      : 22,
+        "command"   : "service ssh start"
+    },
+    "apache2" : {
+        "port"      : 80,
+        "command"   : "service apache2 start"
+    },
+    "openvpn" : {
+        "port"      : 1194,
+        "command"   : "service openvpn start"
+    },
+    "mysql" : {
+        "port"      : 3306,
+        "command"   : "service mysql start"
+    }
+}
 
-def startService(command):
+def executeCommande(command):
     os.system(command)
+
+def getCurrentTime():
+    return datetime.now()
+
+def writeInLogFile(msg):
+    with open(LOG_FILE_PATH, "a") as log_file:
+        log_file.write(msg)
         
 def checkPortStatus(port):
     result = subprocess.getoutput(f"nc -vz localhost {port}")
-    print(f"checking port: {port} ==> {result}")
+    writeInLogFile(f"[{getCurrentTime()}] Checking port: {port} ==> {result}\n")
     if "refused" not in result:
         return True
     else:
         return False
 
-def loadTcpService():
-    for i in range(len(TCP_PORTS)):
-        command = TCP_COMMANDS[i]
-        if checkPortStatus(TCP_PORTS[i]):
+def checkServiceStatus():
+    for i in CHECK_SERVICES:
+        command = CHECK_SERVICES[i]["command"]
+        if checkPortStatus(CHECK_SERVICES[i]["port"]):
             continue
         else:
-            print(f"starting service: {TCP_SERVICES[i]} with command: {command}")
-            startService(command)
+            command     = CHECK_SERVICES[i]["command"]
+            message     = f"[{getCurrentTime()}] Starting service {i} with command: \"{command}\" \n"
+            writeInLogFile(message)
+            executeCommande(command)
+            # sendNotificationToSlack(message)
+            # sendNotificationToDiscord(message)
+            
+def sendNotificationToSlack(message):
+    response = postQuery(SLACK_BOT_URL, data=message)
+    writeInLogFile(f"[{getCurrentTime()}] sendNotificationToSlack response: \"{response.text}\" \n")
 
-def loadUdpService():
-    for i in range(len(UDP_PORTS)):
-        command = UDP_COMMANDS[i]
-        if checkPortStatus(UDP_PORTS[i]):
-            continue
-        else:
-            print(f"starting service: {TCP_SERVICES[i]} with command: {command}")
-            startService(command)
-
-def sendNotificationSlack(message):
-    ...
+def sendNotificationToDiscord(message):
+    response = postQuery(DISCORD_WEBHOOKS, data=message)
+    writeInLogFile(f"[{getCurrentTime()}] sendNotificationToDiscord response: \"{response.text}\" \n")
     
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
-        loadTcpService()
-        loadUdpService()
+        checkServiceStatus()
     except Exception as e:
-        print(f"Error: {str(e)}")
+        writeInLogFile(f"Error: {str(e)}\n")
