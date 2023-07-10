@@ -4,7 +4,7 @@
  * @author Shadoworker5 Dev
  * @email shadoworker5@protonmail.com
  * @create date 2023-06-16 12:28:04
- * @modify date 2023-06-25 02:39:39
+ * @modify date 2023-07-10 15:10:10
 """
 import os
 import subprocess
@@ -60,12 +60,11 @@ def checkPortStatus(port):
 
 def checkServiceStatus():
     for i in CHECK_SERVICES:
-        command = CHECK_SERVICES[i]["command"]
         if checkPortStatus(CHECK_SERVICES[i]["port"]):
             continue
         else:
-            command     = CHECK_SERVICES[i]["command"]
-            message     = f"[{getCurrentTime()}] Starting service {i} with command: \"{command}\" \n"
+            command = CHECK_SERVICES[i]["command"]
+            message = f"[{getCurrentTime()}] Starting service {i} with command: \"{command}\" \n"
             writeInLogFile(message)
             executeCommande(command)
             # sendNotificationToSlack(message)
