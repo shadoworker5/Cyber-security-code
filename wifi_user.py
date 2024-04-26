@@ -3,67 +3,91 @@ import re as regex
 import socket
 import sys
 from datetime import datetime
+from threading import Thread, enumerate as thread_enumerate, current_thread as thread_current
 
-hosts = []
+hosts       = []
+found_hosts = []
+RED         = '\033[31m'
+GREEN       = '\033[32m'
 
-# Get username by ip address
-def get_user_name(ip):
+def generateIPList(host, start, end):
+    split_host_ip = host.split('.')
+    for i in range(start, end + 1):
+        tmp_end = int(split_host_ip[3]) + i
+        if tmp_end <= 255:
+            new_ip  = f'{split_host_ip[0]}.{split_host_ip[1]}.{split_host_ip[2]}.{tmp_end}'
+            hosts.append(new_ip)
+
+def getUserNameByIP(ip):
+    name = ''
     try:
-        name, other, host_ip = socket.gethostbyaddr(ip)
-        return name
+        hosname, __, ___ = socket.gethostbyaddr(ip)
+        name = hosname
     except:
-        return "Not found"
+        name = 'Not found'
+    return name
 
-# Send ping request to check all address use in this network
-def ping_request(host, start_ip, end_ip):
-    for i in range(start_ip, end_ip):
-        command = subprocess.Popen("ping "+ host[0:-1]+str(i) +" -n 2", shell=True, stdout=subprocess.PIPE, text=True)
-        result, erreur = command.communicate()
-        if regex.search(" Impossible de joindre l'h“te de destination.", result) == None:
-            hosts.append(host[0:-1]+str(i))
-            print("{} found".format(host[0:-1]+str(i)))
+def sendPingQuery(host):
+    command     = subprocess.Popen(f'ping {host} -c 5', shell=True, stdout=subprocess.PIPE, text=True)
+    result, _   = command.communicate()
+    
+    if regex.search('Request timeout for icmp_seq 3', result) or regex.search('Host is down', result):
+        print(f'{host} not found')
+    else:
+        print(f'{host} found')
+        found_hosts.append(host)
 
-# This function is use to get user input
-def get_input(input_type, msg):
-    result = ""
-    while True:
-        try:
-            response = input_type(input(msg))
-        except:
-            continue
+def pingRequest():
+    for host in hosts:
+        t = Thread(target=sendPingQuery, args=(host,))
+        t.start()
+    
+    for thread in thread_enumerate():
+        if thread != thread_current():
+            thread.join()
 
-        if input_type == str:
-            if regex.match(r"^1[0-9]{1,2}([.]?[0-9]{1,3}){3}$", response):
-                result = response
-                break
-        elif input_type == int:
-            result = response
-            break
-    return result
-
-# This function the start point of this script
 def main(address_ip, start_ip, end_ip):
     """ This is main function we launch at begining of all """
-    time_start = datetime.timestamp(datetime.today())
-    ping_request(address_ip, start_ip, end_ip)
+    time_start  = datetime.timestamp(datetime.today())
+    size_name   = 34
+    size_host   = 18
+    generateIPList(address_ip, start_ip, end_ip)
+    pingRequest()
 
-    print("-"*25)
-    print("Address Ip   | Host name")
-    print("-"*25)
+    print('\n\n')
+    print('-'*60)
+    print(f'| Address Ip {" "*8} | Host name {" ":<24} |')
+    print('-'*60)
     
-    for host in hosts:
-        name = get_user_name(host)
-        print("{}    | {}".format(host, name))
+    for host in found_hosts:
+        host_name   = getUserNameByIP(host)
+        tab_size    = size_name - len(host_name)
+        host_size   = size_host - len(host)
+        print(f'| {host} {" "*host_size} | {host_name}{" "*tab_size} |')
+
+    if len(found_hosts) > 0: print('-'*60)
     
     end_start = datetime.timestamp(datetime.today())
-    print("Scan time: {} seconds".format(str(end_start - time_start).split(".")[0]))
+    print('\n\nScan time: {} seconds'.format(str(end_start - time_start).split(".")[0]))
 
 if len(sys.argv) == 4:
     try:
+        banner = '''
+        __        __ ___  _____  ___   _   _  ____   _____  ____  
+        \ \      / /|_ _||  ___||_ _| | | | |/ ___| | ____||  _ \ 
+         \ \ /\ / /  | | | |_    | |  | | | |\___ \ |  _|  | |_) |
+          \ V  V /   | | |  _|   | |  | |_| | ___) || |___ |  _ < 
+           \_/\_/   |___||_|    |___|  \___/ |____/ |_____||_| \_\\
+        '''
+        
+        print(RED)
+        print(banner)
+        print(GREEN)
+        
         main(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]))
     except KeyboardInterrupt:
-        print("Keyboard Interruption.\nBye")
+        print('Keyboard Interruption.\nBye')
         exit()
 else:
-    print("Error. You must use this script by example 127.0.0.1 1 255")
+    print('Error. You must use this script by example 127.0.0.1 1 255')
     exit()
