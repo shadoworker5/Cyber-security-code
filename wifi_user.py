@@ -46,6 +46,17 @@ def pingRequest():
         if thread != thread_current():
             thread.join()
 
+def isOpenPort(host, start_port, end_port):
+    for port in range(start_port, end_port + 1):
+        command     = subprocess.Popen(f'nc -vz {host} {port}', shell=True, stdout=subprocess.PIPE, text=True)
+        result, _   = command.communicate()
+        
+        if regex.search('Connection refused', result):
+            print(f'{port} on {host} is close')
+        else:
+            print(f'{port} is open')
+            found_hosts.append({host: {port: 'is open'}})
+
 def main(address_ip, start_ip, end_ip):
     """ This is main function we launch at begining of all """
     time_start  = datetime.timestamp(datetime.today())
