@@ -9,6 +9,7 @@ import argparse
 from socket import gethostbyaddr
 import requests
 from os import system, name as sys_name
+import socket
 
 API_TOKEN   = {"IPStack": "YOUR_TOKEN"}
 RED         = '\033[31m'
@@ -19,12 +20,14 @@ VERSION     = '1.0.1'
 def localiseIP(ip):
     api_ipstack = f"http://api.ipstack.com/{ip}?access_key={API_TOKEN['IPStack']}"
     api_ipwhois = f'https://ipwhois.app/json/{ip}'
+    ip_postion  = ''
     try:
         response = requests.get(api_ipstack)
         if response.status_code == 200:
             response    = response.json()
             fai         = requests.get(f'{api_ipwhois}').json()
             map_url     = f"https://maps.google.com/?q={response['latitude']},{response['longitude']}"
+            ip_postion  = f"{response['latitude']},{response['longitude']}"
             print(f"Target public IP: {response['ip']}")
             print(f"Type address    : {response['type']}")
             print(f"Continent code  : {response['continent_code']}")
@@ -47,6 +50,7 @@ def localiseIP(ip):
         if result.status_code == 200:
             result  = result.json()
             map_url = f"https://maps.google.com/?q={result['latitude']},{result['longitude']}"
+            ip_postion  = f"{result['latitude']},{result['longitude']}"
             print(f"Target public IP: {result['ip']}")
             print(f"Type address    : {result['type']}")
             print(f"Continent code  : {result['continent_code']}")
@@ -65,16 +69,24 @@ def localiseIP(ip):
             print(f"Code currency   : {result['currency_code']}")
             print(f"Currency rates  : {result['currency_rates']}")
             print(f"Currency plural : {result['currency_plural']}")
+    return ip_postion
 
 def getHostIP():
-    ip = ''
+    host_ip = '127.0.0.1'
     try:
-        response    = requests.get('https://api64.ipify.org?format=json').json()
-        ip          = response["ip"]
+        host_name   = socket.gethostname()
+        host_ip     = socket.gethostbyname(host_name)
     except Exception as e:
-        ip = '127.0.0.1'
-    return ip
-    
+        print(f'error occur in getHostIP: {str(e)}')
+    return host_ip
+
+def openWebBrowser(source, target):
+    import webbrowser
+    try:
+        webbrowser.open(f'https://www.google.com/maps/dir/{source}/{target}/')
+    except Exception as e:
+        print(f'Error occur in openWebBrowser: {str(e)}')
+
 def getHostName(ip):
     host_name, _, t_ip = gethostbyaddr(ip)
     return host_name
@@ -109,23 +121,28 @@ if __name__ == '__main__':
         parser = argparse.ArgumentParser()
         parser.add_argument('-o', '--own', help='Geolocalize your own IP', action='store_true')
         parser.add_argument('-t', '--target', help='Geolocalize target IP', action='store_true')
+        parser.add_argument('-w', '--web', help='Open web browser with', action='store_true')
         args = parser.parse_args()
         
         cleanScreen()
         print(RED)
         print(banner)
         print(GREEN)
-        
+        target = ''
+
         if args.target:
             target_ip = getTargetIP()
             print(f'Your Target IP  : {target_ip}')
             print(f'Your Target Name: {getHostName(target_ip)}')
-            localiseIP(target_ip)
+            target = localiseIP(target_ip)
         elif args.own:
             host_local_ip = getHostIP()
             print(f'Your IP         : {host_local_ip}')
             print(f'Your host Name  : {getHostName(host_local_ip)}')
             localiseIP(host_local_ip)
+        if args.web:
+            source = '12.310049050899947,-1.4582602893081045'
+            openWebBrowser(source, target)
         else:
             parser.print_help()
     except Exception as e:
