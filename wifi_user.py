@@ -1,9 +1,10 @@
 import subprocess
 import re as regex
 import socket
-import sys
 from datetime import datetime
 from threading import Thread, enumerate as thread_enumerate, current_thread as thread_current
+import argparse
+from ipaddress import ip_address
 
 hosts       = []
 found_hosts = []
@@ -57,6 +58,15 @@ def isOpenPort(host, start_port, end_port):
             print(f'{port} is open')
             found_hosts.append({host: {port: 'is open'}})
 
+def getHostIP():
+    host_ip = '127.0.0.1'
+    try:
+        host_name   = socket.gethostname()
+        host_ip     = socket.gethostbyname(host_name)
+    except Exception as e:
+        print(f'error occur in getHostIP: {str(e)}')
+    return host_ip
+
 def main(address_ip, start_ip, end_ip):
     """ This is main function we launch at begining of all """
     time_start  = datetime.timestamp(datetime.today())
@@ -81,7 +91,7 @@ def main(address_ip, start_ip, end_ip):
     end_start = datetime.timestamp(datetime.today())
     print('\n\nScan time: {} seconds'.format(str(end_start - time_start).split(".")[0]))
 
-if len(sys.argv) == 4:
+if __name__ == '__main__':
     try:
         banner = '''
         __        __ ___  _____  ___   _   _  ____   _____  ____  
@@ -95,10 +105,22 @@ if len(sys.argv) == 4:
         print(banner)
         print(GREEN)
         
-        main(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]))
-    except KeyboardInterrupt:
+        parser = argparse.ArgumentParser()
+        parser.add_argument('-o', '--own', help='Analyze your own local connexion', action='store_true')
+        parser.add_argument('-t', '--target', help='Analyze your target connexion')
+        parser.add_argument('-s', '--start', help='First addresse to analyze', type=int, default=1)
+        parser.add_argument('-e', '--end', help='Last addresse to analyze', type=int, default=255)
+        args = parser.parse_args()
+
+        if args.target:
+            target_ip = args.target
+            result = ip_address(target_ip)
+            main(result, args.start, args.end)
+        elif args.own:
+            host_ip = getHostIP()
+            main(host_ip, args.start, args.end)
+        else:
+            parser.print_help()
+    except Exception as e:
         print('Keyboard Interruption.\nBye')
-        exit()
-else:
-    print('Error. You must use this script by example 127.0.0.1 1 255')
-    exit()
+        exit(0)
